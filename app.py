@@ -16,7 +16,7 @@ def predict_breed():
     if not image_url:
         return jsonify({"error": "No se proporcionó una URL de imagen"}), 400
 
-    api_token = os.getenv("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")
+    api_token = os.getenv("HUGGINGFACE_API_TOKEN")
     headers = {
         "Authorization": f"Bearer {api_token}"
     }
