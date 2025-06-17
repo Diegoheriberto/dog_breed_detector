@@ -1,3 +1,13 @@
+from flask import Flask, request, jsonify
+import requests
+import os
+
+app = Flask(__name__)
+
+@app.route("/")
+def home():
+    return "Backend IA funcionando"
+
 @app.route("/predict_breed", methods=["POST"])
 def predict_breed():
     data = request.get_json()
@@ -13,12 +23,12 @@ def predict_breed():
     }
 
     try:
-        # Descargar imagen desde la URL
+        # Descargar la imagen desde la URL
         image_response = requests.get(image_url)
         image_response.raise_for_status()
         image_bytes = image_response.content
 
-        # Enviar imagen como binario al modelo
+        # Enviar imagen binaria al modelo
         response = requests.post(
             "https://api-inference.huggingface.co/models/microsoft/resnet-50",
             headers=headers,
