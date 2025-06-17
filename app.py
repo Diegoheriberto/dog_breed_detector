@@ -1,45 +1,44 @@
 from flask import Flask, request, jsonify
 import requests
+import os
 
 app = Flask(__name__)
 
-# 🔐 Coloca tu token Hugging Face real
-HUGGINGFACE_API_TOKEN = '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'
-
-@app.route('/')
+@app.route("/")
 def home():
-    return 'API de predicción de raza funcionando 🐶'
+    return "Backend IA funcionando"
 
-@app.route('/predict_breed', methods=['POST'])
+@app.route("/predict_breed", methods=["POST"])
 def predict_breed():
     data = request.get_json()
-    image_url = data.get('url')
+    image_url = data.get("image_url")
 
     if not image_url:
-        return jsonify({'error': 'Falta la URL de imagen'}), 400
+        return jsonify({"error": "No se proporcionó una URL de imagen"}), 400
+
+    api_token = os.getenv("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")
+    headers = {
+        "Authorization": f"Bearer {api_token}"
+    }
+    payload = {"inputs": image_url}
 
     try:
-        # Descargamos la imagen desde la URL
-        image_response = requests.get(image_url)
-        image_response.raise_for_status()
-        image_bytes = image_response.content
-
-        # Enviamos la imagen binaria a Hugging Face
         response = requests.post(
-            'https://api-inference.huggingface.co/models/microsoft/resnet-50',
-            headers={
-                'Authorization': f'Bearer {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}',
-                'Content-Type': 'application/octet-stream'
-            },
-            data=image_bytes
+            "https://api-inference.huggingface.co/models/microsoft/resnet-50",
+            headers=headers,
+            json=payload
         )
         response.raise_for_status()
+        predictions = response.json()
 
-    except requests.exceptions.RequestException as e:
-        return jsonify({'error': f'Error al conectar con Hugging Face: {str(e)}'}), 500
+        if isinstance(predictions, list) and len(predictions) > 0:
+            top = predictions[0]
+            return jsonify({
+                "raza": top["label"],
+                "confianza": round(top["score"] * 100, 2)
+            })
 
-    result = response.json()
-    return jsonify({'predicciones': result})
+        return jsonify({"error": "No se pudo obtener una predicción válida"}), 500
 
-if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
