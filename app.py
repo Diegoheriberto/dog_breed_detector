@@ -28,7 +28,7 @@ def predict_breed():
         response = requests.post(
             'https://api-inference.huggingface.co/models/microsoft/resnet-50',
             headers={
-                'Authorization': f'Bearer {HUGGINGFACE_API_TOKEN}',
+                'Authorization': f'Bearer {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}',
                 'Content-Type': 'application/octet-stream'
             },
             data=image_bytes
