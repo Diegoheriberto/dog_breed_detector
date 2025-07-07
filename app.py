@@ -1,8 +1,18 @@
 from flask import Flask, request, jsonify
 import requests
 import os
+import random
 
 app = Flask(__name__)
+
+# Frases divertidas si no detecta raza animal
+frases_divertidas = [
+    "¡Pareces un rottweiler con lentes de sol!",
+    "Hmm... eso se parece más a un humano disfrazado de chihuahua.",
+    "¿Un husky? ¡No, un humano peludo!",
+    "¡Parece un gato con autoestima de pastor alemán!",
+    "Claramente eres... un golden retriever en cuerpo de humano 😄"
+]
 
 @app.route("/")
 def home():
@@ -23,10 +33,12 @@ def predict_breed():
     }
 
     try:
+        # Descargar la imagen desde la URL
         image_response = requests.get(image_url)
         image_response.raise_for_status()
         image_bytes = image_response.content
 
+        # Enviar imagen binaria al modelo
         response = requests.post(
             "https://api-inference.huggingface.co/models/microsoft/resnet-50",
             headers=headers,
@@ -36,13 +48,29 @@ def predict_breed():
         predictions = response.json()
 
         if isinstance(predictions, list) and len(predictions) > 0:
-            top = predictions[0]
-            return jsonify({
-                "raza": top["label"],
-                "confianza": round(top["score"] * 100, 2)
-            })
+            # Extraer top 3
+            top3 = predictions[:3]
+            razas_detectadas = [p["label"].lower() for p in top3]
+
+            if any("dog" in r or "cat" in r for r in razas_detectadas):
+                return jsonify({
+                    "modo": "serio",
+                    "predicciones": [
+                        {"raza": p["label"], "confianza": round(p["score"] * 100, 2)}
+                        for p in top3
+                    ]
+                })
+            else:
+                return jsonify({
+                    "modo": "broma",
+                    "mensaje": random.choice(frases_divertidas)
+                })
 
         return jsonify({"error": "No se pudo obtener una predicción válida"}), 500
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+if __name__ == '__main__':
+    app.run(debug=True)
+
