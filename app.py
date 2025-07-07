@@ -1,4 +1,3 @@
-
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 import tensorflow as tf
@@ -15,9 +14,11 @@ modelo = MobileNetV2(weights='imagenet')
 
 # Frases divertidas si no detecta raza animal
 frases_divertidas = [
-    "Esto es un misterio peludo. ¿Seguro que es una mascota? 🕵️‍♂️",
-    "Ni con lupa encontramos la raza... ¡esto es arte abstracto peludo! 🎨",
-    "La IA se rinde... dice que es un peluche con actitud. 🧸✨"
+    "¡Pareces un rottweiler con lentes de sol!",
+    "Hmm... eso se parece más a un humano disfrazado de chihuahua.",
+    "¿Un husky? ¡No, un humano peludo!",
+    "¡Parece un gato con autoestima de pastor alemán!",
+    "Claramente eres... un golden retriever en cuerpo de humano 😄"
 ]
 
 def procesar_imagen(ruta):
@@ -44,15 +45,12 @@ def identificar():
         razas_detectadas = [p[1] for p in predicciones]
         confianza = float(predicciones[0][2]) * 100
 
+        # Busca si hay alguna raza de perro o gato
         if any("dog" in r or "cat" in r for r in razas_detectadas):
             return jsonify({
                 "modo": "serio",
-                "predicciones": [
-                    {
-                        "raza": p[1],
-                        "confianza": round(float(p[2]) * 100, 2)
-                    } for p in predicciones
-                ]
+                "raza": razas_detectadas[0],
+                "confianza": round(confianza, 2)
             })
         else:
             return jsonify({
