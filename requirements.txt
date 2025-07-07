@@ -1,6 +1,5 @@
 flask
-flask_cors
+flask-cors
 tensorflow-cpu==2.9.1
 gunicorn
-
 
